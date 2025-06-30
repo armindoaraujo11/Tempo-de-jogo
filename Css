@@ -1,0 +1,9 @@
+body { font-family: sans-serif; margin: 10px; }
+h1, h2, h3 { text-align: center; }
+ul { list-style: none; padding: 0; }
+section { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+.coluna { display: inline-block; width: 45%; vertical-align: top; }
+li { margin: 5px 0; }
+.botao-sub { margin-left: 10px; }
+#cronometro-geral { font-size: 2em; }
+button { margin: 5px; padding: 5px 10px; }
