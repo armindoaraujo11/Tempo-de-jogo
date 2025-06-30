@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Controle de Tempo – Futsal</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>⚽ Futsal – Controle de Tempo</h1>
+
+  <!-- Cadastro de elenco fixo -->
+  <section id="elenco-section">
+    <h2>Elenco fixo</h2>
+    <input type="text" id="novo-jogador" placeholder="Nome do jogador">
+    <button onclick="adicionarJogador()">Adicionar</button>
+    <ul id="lista-elenco"></ul>
+  </section>
+
+  <!-- Convocação de 12 jogadores -->
+  <section id="convocacao-section">
+    <h2>Convocação (12 max)</h2>
+    <ul id="lista-convocacao"></ul>
+    <button onclick="iniciarPartida()">Iniciar Partida</button>
+  </section>
+
+  <!-- Tela de jogo -->
+  <section id="jogo-section" style="display:none">
+    <div>
+      <span id="cronometro-geral">00:00</span>
+      <button onclick="pausarContinuar()">Pausar</button>
+      <button onclick="encerrarPartida()">Encerrar Partida</button>
+    </div>
+    <div class="coluna">
+      <h3>Quadra</h3>
+      <ul id="lista-quadra"></ul>
+    </div>
+    <div class="coluna">
+      <h3>Banco</h3>
+      <ul id="lista-banco"></ul>
+    </div>
+  </section>
+
+  <!-- Histórico -->
+  <section id="historico-section">
+    <h2>Histórico de Partidas</h2>
+    <ul id="lista-historico"></ul>
+  </section>
+
+  <audio id="alerta-som" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"></audio>
+  <script src="script.js"></script>
+</body>
+</html>
