@@ -1,0 +1,140 @@
+const LIMITE_MIN = 5; // minutos limite em quadra (você pode alterar previamente)
+let elenco = [];
+let convocados = [];
+let partida = null;
+let historico = JSON.parse(localStorage.getItem('futsal_historico')) || [];
+
+// Salvamento/permanência
+function salvarElenco() { localStorage.setItem('futsal_elenco', JSON.stringify(elenco)); }
+function salvarHistorico() { localStorage.setItem('futsal_historico', JSON.stringify(historico)); }
+
+// Carregar elenco e histórico
+elenco = JSON.parse(localStorage.getItem('futsal_elenco')) || [];
+atualizarElenco();
+atualizarHistorico();
+
+// Funções principais
+function adicionarJogador() {
+  const nome = document.getElementById('novo-jogador').value.trim();
+  if (!nome || elenco.includes(nome)) return;
+  elenco.push(nome);
+  salvarElenco();
+  document.getElementById('novo-jogador').value = '';
+  atualizarElenco();
+}
+
+function atualizarElenco() {
+  const el = document.getElementById('lista-elenco');
+  el.innerHTML = '';
+  elenco.forEach(nome => {
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.textContent = convocados.includes(nome) ? '← Remover' : 'Convocar →';
+    btn.onclick = () => toggleConvocacao(nome);
+    li.textContent = nome;
+    li.appendChild(btn);
+    el.appendChild(li);
+  });
+  document.getElementById('lista-convocacao').innerHTML =
+    convocados.map(nome => `<li>${nome}</li>`).join('');
+}
+
+function toggleConvocacao(nome) {
+  if (convocados.includes(nome)) {
+    convocados = convocados.filter(n => n !== nome);
+  } else if (convocados.length < 12) {
+    convocados.push(nome);
+  }
+  atualizarElenco();
+}
+
+function iniciarPartida() {
+  if (convocados.length !== 12) return alert('Selecione 12 jogadores.');
+  partida = {
+    inicio: Date.now(),
+    pausado: false,
+    tempoGeral: 0,
+    cron: null,
+    jogadores: convocados.map(nome => ({ nome, emQuadra: false, tempo: 0 }))
+  };
+  document.getElementById('elenco-section').style.display = 'none';
+  document.getElementById('convocacao-section').style.display = 'none';
+  document.getElementById('jogo-section').style.display = '';
+  atualizarJogo();
+  partida.cron = setInterval(updateCronometro, 1000);
+}
+
+function updateCronometro() {
+  if (partida.pausado) return;
+  partida.tempoGeral++;
+  partida.jogadores.forEach(j => j.emQuadra && j.tempo++);
+  atualizarJogo();
+  // Verificar alertas
+  partida.jogadores.forEach(j => {
+    if (j.emQuadra && j.tempo === LIMITE_MIN * 60) {
+      document.getElementById('alerta-som').play();
+      alert(`⚠️ ${j.nome} atingiu ${LIMITE_MIN} minutos em quadra!`);
+    }
+  });
+}
+
+function pausarContinuar() {
+  partida.pausado = !partida.pausado;
+}
+
+function toggleSub(nome) {
+  const j = partida.jogadores.find(x => x.nome === nome);
+  j.emQuadra = !j.emQuadra;
+  if (partida.jogadores.filter(x => x.emQuadra).length > 5) {
+    j.emQuadra = !j.emQuadra;
+    alert('Só 5 jogadores podem estar em quadra.');
+  }
+  atualizarJogo();
+}
+
+function atualizarJogo() {
+  document.getElementById('cronometro-geral').textContent = 
+    new Date(partida.tempoGeral * 1000).toISOString().substr(14,5);
+  const q = document.getElementById('lista-quadra');
+  const b = document.getElementById('lista-banco');
+  q.innerHTML = b.innerHTML = '';
+  partida.jogadores.forEach(j => {
+    const li = document.createElement('li');
+    li.textContent = `${j.nome} – ${Math.floor(j.tempo/60)}:${String(j.tempo%60).padStart(2,'0')}`;
+    const btn = document.createElement('button');
+    btn.textContent = j.emQuadra ? '⇨ Banco' : '⇦ Quadra';
+    btn.className = 'botao-sub';
+    btn.onclick = () => toggleSub(j.nome);
+    li.appendChild(btn);
+    (j.emQuadra ? q : b).appendChild(li);
+  });
+}
+
+function encerrarPartida() {
+  clearInterval(partida.cron);
+  historico.unshift({
+    data: new Date(partida.inicio).toLocaleString(),
+    jogadores: partida.jogadores.map(j => ({
+      nome: j.nome,
+      tempo: j.tempo
+    }))
+  });
+  salvarHistorico();
+  document.getElementById('jogo-section').style.display = 'none';
+  document.getElementById('elenco-section').style.display = '';
+  document.getElementById('convocacao-section').style.display = '';
+  convocados = [];
+  partida = null;
+  atualizarHistorico();
+  atualizarElenco();
+}
+
+function atualizarHistorico() {
+  const h = document.getElementById('lista-historico');
+  h.innerHTML = historico.map(p => `
+    <li>
+      <b>${p.data}</b>
+      <ul>${p.jogadores.map(j => `<li>${j.nome}: ${Math.floor(j.tempo/60)}:${String(j.tempo%60).padStart(2,'0')}</li>`).join('')}</ul>
+    </li>
+  `).join('');
+}
